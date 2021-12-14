@@ -1,11 +1,13 @@
-from typing import Optional
+import os
+import asyncio
+from typing import Optional, Union, Any, Callable, TypeVar
+import functools
 import shutil
 import json
 from stat import S_ISDIR
 from pathlib import Path
 from collections.abc import AsyncGenerator
 from logging import getLogger
-
 
 import aiofiles
 from aiofiles.os import stat as aio_stat
@@ -24,9 +26,7 @@ from asgi_webdav.helpers import generate_etag, guess_type, detect_charset
 from asgi_webdav.request import DAVRequest
 from asgi_webdav.provider.dev_provider import DAVProvider
 
-
 logger = getLogger(__name__)
-
 
 DAV_EXTENSION_INFO_FILE_EXTENSION = "WebDAV"
 """dav extension info file format: JSON
@@ -36,6 +36,12 @@ DAV_EXTENSION_INFO_FILE_EXTENSION = "WebDAV"
     ]
 }
 """
+T = TypeVar("T")
+
+
+async def run_in_threadpool(func: Callable[..., T], *args: Any, **kwargs: Any) -> T:
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, functools.partial(func, *args, **kwargs))
 
 
 def _parser_property_from_json(data) -> dict[DAVPropertyIdentity, str]:
@@ -69,7 +75,7 @@ async def _load_extra_property(file: Path) -> dict[DAVPropertyIdentity, str]:
 
 
 async def _update_extra_property(
-    file: Path, property_patches: list[DAVPropertyPatches]
+        file: Path, property_patches: list[DAVPropertyPatches]
 ) -> bool:
     if not file.exists():
         file.touch()
@@ -107,9 +113,9 @@ async def _update_extra_property(
 
 
 async def _dav_response_data_generator(
-    resource_abs_path: Path,
-    content_range_start: Optional[int] = None,
-    content_range_end: Optional[int] = None,  # TODO!!
+        resource_abs_path: Path,
+        content_range_start: Optional[int] = None,
+        content_range_end: Optional[int] = None,  # TODO!!  add zerocopy
 ) -> AsyncGenerator[bytes, bool]:
     async with aiofiles.open(resource_abs_path, mode="rb") as f:
         if content_range_start is not None:
@@ -121,6 +127,16 @@ async def _dav_response_data_generator(
             more_body = len(data) == RESPONSE_DATA_BLOCK_SIZE
 
             yield data, more_body
+
+
+async def open_for_sendfile(
+        path: Union[str, bytes, "os.PathLike[str]", "os.PathLike[bytes]"]
+) -> int:
+    if os.name == "nt":
+        open_mode = os.O_RDONLY | os.O_BINARY
+    else:
+        open_mode = os.O_RDONLY
+    return await run_in_threadpool(os.open, path, open_mode)
 
 
 class FileSystemProvider(DAVProvider):
@@ -157,7 +173,7 @@ class FileSystemProvider(DAVProvider):
         )
 
     async def _get_dav_property(
-        self, request: DAVRequest, href_path: DAVPath, fs_path: Path
+            self, request: DAVRequest, href_path: DAVPath, fs_path: Path
     ) -> DAVProperty:
         stat_result = await aio_stat(fs_path)
         is_collection = S_ISDIR(stat_result.st_mode)
@@ -272,7 +288,7 @@ class FileSystemProvider(DAVProvider):
         return 201
 
     async def _do_get(
-        self, request: DAVRequest
+            self, request: DAVRequest
     ) -> tuple[int, Optional[DAVPropertyBasicData], Optional[AsyncGenerator]]:
         fs_path = self._get_fs_path(request.dist_src_path, request.user.username)
         if not fs_path.exists():
@@ -284,19 +300,25 @@ class FileSystemProvider(DAVProvider):
             return 200, dav_property.basic_data, None
 
         # is file
-        if request.content_range:
-            data = _dav_response_data_generator(
-                fs_path, content_range_start=request.content_range_start
-            )
-            http_status = 206
-        else:
-            data = _dav_response_data_generator(fs_path)
+        if "extensions" in request.scope and "http.response.zerocopysend" in request.scope["extensions"]:
             http_status = 200
+            fd = await open_for_sendfile(fs_path)  # todo add zerocopy here
+            return http_status, dav_property.basic_data, (
+            fd, request.content_range_start if request.content_range else None)  # fd ,offset
+        else:
+            if request.content_range:
+                data = _dav_response_data_generator(
+                    fs_path, content_range_start=request.content_range_start
+                )
+                http_status = 206
+            else:
+                data = _dav_response_data_generator(fs_path)
+                http_status = 200
 
-        return http_status, dav_property.basic_data, data
+            return http_status, dav_property.basic_data, data
 
     async def _do_head(
-        self, request: DAVRequest
+            self, request: DAVRequest
     ) -> tuple[int, Optional[DAVPropertyBasicData]]:
         fs_path = self._get_fs_path(request.dist_src_path, request.user.username)
         if not fs_path.exists():  # TODO macOS 不区分大小写
@@ -349,7 +371,7 @@ class FileSystemProvider(DAVProvider):
 
     @staticmethod
     def _copy_dir_depth0(
-        src_path: Path, dst_path: Path, overwrite: bool = False
+            src_path: Path, dst_path: Path, overwrite: bool = False
     ) -> bool:
         try:
             dst_path.mkdir(exist_ok=overwrite)

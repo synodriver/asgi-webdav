@@ -20,7 +20,6 @@ try:
 except ImportError:
     brotli = None
 
-
 logger = getLogger(__name__)
 
 
@@ -47,7 +46,9 @@ class DAVResponse:
         elif isinstance(value, AsyncGenerator):
             self._content = value
             self.content_length = None
-
+        elif isinstance(value, tuple):  # this is zerocopysend
+            self._content = value
+            self.content_length = None
         else:
             raise
 
@@ -59,14 +60,14 @@ class DAVResponse:
     content_range_end: Optional[int] = None
 
     def __init__(
-        self,
-        status: int,
-        headers: Optional[dict[bytes, bytes]] = None,  # extend headers
-        response_type: DAVResponseType = DAVResponseType.HTML,
-        content: Union[bytes, AsyncGenerator] = b"",
-        content_length: Optional[int] = None,  # don't assignment when data is bytes
-        content_range_start: Optional[int] = None,
-        content_range_end: Optional[int] = None,
+            self,
+            status: int,
+            headers: Optional[dict[bytes, bytes]] = None,  # extend headers
+            response_type: DAVResponseType = DAVResponseType.HTML,
+            content: Union[bytes, AsyncGenerator, tuple] = b"",
+            content_length: Optional[int] = None,  # don't assignment when data is bytes
+            content_range_start: Optional[int] = None,
+            content_range_end: Optional[int] = None,
     ):
         self.status = status
 
@@ -125,9 +126,9 @@ class DAVResponse:
             try_compress = True
 
         elif (
-            compression.user_content_type_rule
-            and compression.user_content_type_rule != ""
-            and re.match(compression.user_content_type_rule, content_type)
+                compression.user_content_type_rule
+                and compression.user_content_type_rule != ""
+                and re.match(compression.user_content_type_rule, content_type)
         ):
             try_compress = True
 
@@ -162,14 +163,23 @@ class DAVResponse:
             }
         )
         # send data
-        async for data, more_body in self._content:
-            await request.send(
-                {
-                    "type": "http.response.body",
-                    "body": data,
-                    "more_body": more_body,
-                }
-            )
+        if isinstance(self._content, tuple):
+            msg = {
+                "type": "http.response.zerocopysend",
+                "file": self._content[0]
+            }
+            if self._content[1] is not None:
+                msg["offset"] = self._content[1]
+            await request.send(msg)
+        else:
+            async for data, more_body in self._content:
+                await request.send(
+                    {
+                        "type": "http.response.body",
+                        "body": data,
+                        "more_body": more_body,
+                    }
+                )
 
     def __repr__(self):
         fields = [
@@ -211,50 +221,66 @@ class CompressionSenderAbc:
         )
 
         first = True
-        async for body, more_body in self.response.content:
-            # get and compress body
-            self.write(body)
-            if not more_body:
-                self.close()
-            body = self.buffer.getvalue()
+        if isinstance(self.response.content, tuple):
+            await request.send(
+                {
+                    "type": "http.response.start",
+                    "status": self.response.status,
+                    "headers": list(self.response.headers.items()),
+                }
+            )
+            msg = {
+                "type": "http.response.zerocopysend",
+                "file": self.response.content[0],
+            }
+            if self.response.content[1] is not None:
+                msg["offset"] = self.response.content[1]
+            await request.send(msg)
+        else:
+            async for body, more_body in self.response.content:
+                # get and compress body
+                self.write(body)
+                if not more_body:
+                    self.close()
+                body = self.buffer.getvalue()
 
-            self.buffer.seek(0)
-            self.buffer.truncate()
+                self.buffer.seek(0)
+                self.buffer.truncate()
 
-            if first:
-                first = False
+                if first:
+                    first = False
 
-                # update headers
-                if more_body:
-                    try:
-                        self.response.headers.pop(b"Content-Length")
-                    except KeyError:
-                        pass
+                    # update headers
+                    if more_body:
+                        try:
+                            self.response.headers.pop(b"Content-Length")
+                        except KeyError:
+                            pass
 
-                else:
-                    self.response.headers.update(
+                    else:
+                        self.response.headers.update(
+                            {
+                                b"Content-Length": str(len(body)).encode("utf-8"),
+                            }
+                        )
+
+                    # send headers
+                    await request.send(
                         {
-                            b"Content-Length": str(len(body)).encode("utf-8"),
+                            "type": "http.response.start",
+                            "status": self.response.status,
+                            "headers": list(self.response.headers.items()),
                         }
                     )
 
-                # send headers
+                # send body
                 await request.send(
                     {
-                        "type": "http.response.start",
-                        "status": self.response.status,
-                        "headers": list(self.response.headers.items()),
+                        "type": "http.response.body",
+                        "body": body,
+                        "more_body": more_body,
                     }
                 )
-
-            # send body
-            await request.send(
-                {
-                    "type": "http.response.body",
-                    "body": body,
-                    "more_body": more_body,
-                }
-            )
 
 
 class GzipSender(CompressionSenderAbc):
