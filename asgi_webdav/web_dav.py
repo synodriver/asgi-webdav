@@ -82,7 +82,7 @@ class PrefixProviderInfo:
     readonly: bool = False  # TODO impl
 
     def __str__(self):
-        return "{} => {}".format(self.prefix, self.provider)
+        return f"{self.prefix} => {self.provider}"
 
 
 class WebDAV:
@@ -113,7 +113,7 @@ class WebDAV:
                 home_dir=pm.home_dir,
             )
             self.prefix_provider_mapping.append(ppi)
-            logger.info("Mapping Prefix: {}".format(ppi))
+            logger.info(f"Mapping Prefix: {ppi}")
 
         self.prefix_provider_mapping.sort(
             key=lambda x: getattr(x, "prefix_weight"), reverse=True
@@ -186,7 +186,6 @@ class WebDAV:
         elif request.method == DAVMethod.UNLOCK:
             response = await provider.do_unlock(request)
 
-        # low freq interface ---
         elif request.method == DAVMethod.MKCOL:
             response = await provider.do_mkcol(request)
 
@@ -202,23 +201,21 @@ class WebDAV:
         elif request.method == DAVMethod.MOVE:
             response = await provider.do_move(request)
 
-        # other interface ---
         elif request.method == DAVMethod.OPTIONS:
             response = await provider.get_options(request)
 
         else:
-            raise Exception("{} is not support method".format(request.method))
+            raise Exception(f"{request.method} is not support method")
 
         return response
 
     def get_depth_1_child_provider(self, prefix: DAVPath) -> list[DAVProvider]:
-        providers = list()
-        for ppm in self.prefix_provider_mapping:
-            if ppm.prefix.startswith(prefix):
-                if ppm.prefix.get_child(prefix).count == 1:
-                    providers.append(ppm.provider)
-
-        return providers
+        return [
+            ppm.provider
+            for ppm in self.prefix_provider_mapping
+            if ppm.prefix.startswith(prefix)
+            and ppm.prefix.get_child(prefix).count == 1
+        ]
 
     async def do_propfind(
         self, request: DAVRequest, provider: DAVProvider
@@ -232,10 +229,9 @@ class WebDAV:
             return DAVResponse(404)
 
         message = await provider.create_propfind_response(request, dav_properties)
-        response = DAVResponse(
+        return DAVResponse(
             status=207, content=message, response_type=DAVResponseType.XML
         )
-        return response
 
     async def _do_propfind(
         self, request: DAVRequest, provider: DAVProvider
@@ -338,8 +334,7 @@ class WebDAV:
 
         tbody_dir = str()
         tbody_file = str()
-        dav_path_list = list(dav_properties.keys())
-        dav_path_list.sort()
+        dav_path_list = sorted(dav_properties.keys())
         for dav_path in dav_path_list:
             basic_data = dav_properties[dav_path].basic_data
             if dav_path == root_path:
@@ -375,20 +370,24 @@ class WebDAV:
 
     def is_ignore_in_dir_browser(self, filename: str) -> bool:
         # TODO merge regex at init
-        if len(self.dir_browser_config.user_ignore_rule) >= 1:
-            if re.match(self.dir_browser_config.user_ignore_rule, filename):
-                return True
+        if len(self.dir_browser_config.user_ignore_rule) >= 1 and re.match(
+            self.dir_browser_config.user_ignore_rule, filename
+        ):
+            return True
 
-        if self.dir_browser_config.enable_macos_ignore_rules:
-            if re.match(DIR_BROWSER_MACOS_IGNORE_RULES, filename):
-                return True
+        if self.dir_browser_config.enable_macos_ignore_rules and re.match(
+            DIR_BROWSER_MACOS_IGNORE_RULES, filename
+        ):
+            return True
 
-        if self.dir_browser_config.enable_windows_ignore_rules:
-            if re.match(DIR_BROWSER_WINDOWS_IGNORE_RULES, filename):
-                return True
+        if self.dir_browser_config.enable_windows_ignore_rules and re.match(
+            DIR_BROWSER_WINDOWS_IGNORE_RULES, filename
+        ):
+            return True
 
-        if self.dir_browser_config.enable_synology_ignore_rules:
-            if re.match(DIR_BROWSER_SYNOLOGY_IGNORE_RULES, filename):
-                return True
+        if self.dir_browser_config.enable_synology_ignore_rules and re.match(
+            DIR_BROWSER_SYNOLOGY_IGNORE_RULES, filename
+        ):
+            return True
 
         return False

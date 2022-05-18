@@ -29,7 +29,7 @@ logger = getLogger(__name__)
 
 class Server:
     def __init__(self, config: Config):
-        logger.info("ASGI WebDAV Server(v{}) starting...".format(__version__))
+        logger.info(f"ASGI WebDAV Server(v{__version__}) starting...")
         self.dav_auth = DAVAuth(config)
         try:
 
@@ -131,19 +131,14 @@ def get_app(
             import sentry_sdk
             from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 
-            sentry_sdk.init(
-                dsn=config.sentry_dsn,
-                release="{}@{}".format(app_name, __version__),
-            )
+            sentry_sdk.init(dsn=config.sentry_dsn, release=f"{app_name}@{__version__}")
             app = SentryAsgiMiddleware(app)
 
         except ImportError as e:
             logger.warning(e)
 
     logger.info(
-        "ASGI WebDAV Server running on http://{}:{} (Press CTRL+C to quit)".format(
-            app_args.bind_host if app_args.bind_host is not None else "?",
-            app_args.bind_port if app_args.bind_port is not None else "?",
-        )
+        f'ASGI WebDAV Server running on http://{app_args.bind_host if app_args.bind_host is not None else "?"}:{app_args.bind_port if app_args.bind_port is not None else "?"} (Press CTRL+C to quit)'
     )
+
     return app
