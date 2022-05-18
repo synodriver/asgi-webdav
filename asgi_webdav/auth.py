@@ -48,8 +48,9 @@ class HTTPBasicAuth(HTTPAuthAbc):
 
         for user in user_mapping.values():
             basic_credential = b64encode(
-                "{}:{}".format(user.username, user.password).encode("utf-8")
+                f"{user.username}:{user.password}".encode("utf-8")
             )
+
             self.credential_user_mapping[basic_credential] = user
 
     @staticmethod
@@ -57,7 +58,7 @@ class HTTPBasicAuth(HTTPAuthAbc):
         return authorization_header[:6].lower() == b"basic "
 
     def make_auth_challenge_string(self) -> bytes:
-        return 'Basic realm="{}"'.format(self.realm).encode("utf-8")
+        return f'Basic realm="{self.realm}"'.encode("utf-8")
 
     def verify_user(self, authorization_header: bytes) -> Optional[DAVUser]:
         return self.credential_user_mapping.get(authorization_header[6:])
@@ -102,11 +103,7 @@ class HTTPDigestAuth(HTTPAuthAbc):
     def __init__(self, realm: str, secret: Optional[str] = None):
         super().__init__(realm=realm)
 
-        if secret is None:
-            self.secret = uuid4().hex
-        else:
-            self.secret = secret
-
+        self.secret = uuid4().hex if secret is None else secret
         self.opaque = uuid4().hex.upper()
 
     @staticmethod
@@ -174,12 +171,12 @@ class HTTPDigestAuth(HTTPAuthAbc):
 
     @property
     def nonce(self) -> str:
-        return md5("{}{}".format(uuid4().hex, self.secret).encode("utf-8")).hexdigest()
+        return md5(f"{uuid4().hex}{self.secret}".encode("utf-8")).hexdigest()
 
     @staticmethod
     def authorization_str_parser_to_data(authorization: str) -> dict:
         values = authorization.split(",")
-        data = dict()
+        data = {}
         for value in values:
             try:
                 k, v = value.split("=", maxsplit=1)
@@ -187,7 +184,7 @@ class HTTPDigestAuth(HTTPAuthAbc):
                 v = v.strip(' "').rstrip(' "').strip("'").rstrip("'")
                 data[k] = v
             except ValueError as e:
-                logger.error("parser:{} failed, ".format(value), e)
+                logger.error(f"parser:{value} failed, ", e)
 
         return data
 
@@ -274,7 +271,7 @@ class DAVAuth:
             )
 
             self.user_mapping[config_account.username] = user
-            logger.info("Register User: {}".format(user))
+            logger.info(f"Register User: {user}")
 
         self.basic_auth = HTTPBasicAuth(
             realm=self.realm, user_mapping=self.user_mapping
@@ -339,22 +336,18 @@ class DAVAuth:
 
     def create_response_401(self, request: DAVRequest, message: str) -> DAVResponse:
         if self.config.http_digest_auth.enable:
-            if self._match_user_agent(
+            enable_digest = not self._match_user_agent(
                 rule=self.config.http_digest_auth.disable_rule,
                 user_agent=request.client_user_agent,
-            ):
-                enable_digest = False
-            else:
-                enable_digest = True
+            )
 
         else:
-            if self._match_user_agent(
-                rule=self.config.http_digest_auth.enable_rule,
-                user_agent=request.client_user_agent,
-            ):
-                enable_digest = True
-            else:
-                enable_digest = False
+            enable_digest = bool(
+                self._match_user_agent(
+                    rule=self.config.http_digest_auth.enable_rule,
+                    user_agent=request.client_user_agent,
+                )
+            )
 
         if enable_digest:
             challenge_string = self.digest_auth.make_auth_challenge_string()
@@ -371,16 +364,13 @@ class DAVAuth:
 
     @staticmethod
     def _match_user_agent(rule: str, user_agent: str) -> bool:
-        if re.match(rule, user_agent) is None:
-            return False
-
-        return True
+        return re.match(rule, user_agent) is not None
 
     @staticmethod
     def _parser_digest_request(authorization: str) -> dict:
         values = authorization[7:].split(",")
 
-        data = dict()
+        data = {}
         for value in values:
             value = value.replace('"', "").replace(" ", "")
             try:

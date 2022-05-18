@@ -80,7 +80,7 @@ class DAVResponse:
                 # b"MS-Author-Via": b"DAV",  # for windows ?
             }
         else:
-            self.headers = dict()
+            self.headers = {}
 
         if headers:
             self.headers.update(headers)
@@ -100,9 +100,9 @@ class DAVResponse:
             # Content-Range: <unit> <range-start>-<range-end>/<size>
             self.headers.update(
                 {
-                    b"Content-Range": "bytes {}-{}/{}".format(
-                        content_range_start, content_length, content_length
-                    ).encode("utf-8"),
+                    b"Content-Range": f"bytes {content_range_start}-{content_length}/{content_length}".encode(
+                        "utf-8"
+                    )
                 }
             )
 
@@ -180,10 +180,9 @@ class DAVResponse:
             self.content_range_start,
             self.content_range_end,
         ]
-        s = "|".join([str(field) for field in fields])
-
-        s += "\n{}".format(pprint.pformat(self.headers))
-        return s
+        return "|".join([str(field) for field in fields]) + "\n{}".format(
+            pprint.pformat(self.headers)
+        )
 
 
 class CompressionSenderAbc:

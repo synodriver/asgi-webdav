@@ -12,9 +12,7 @@ config_data = {
     ]
 }
 
-basic_authorization = b"Basic " + b64encode(
-    "{}:{}".format("user1", "pass1").encode("utf-8")
-)
+basic_authorization = (b"Basic " + b64encode('user1:pass1'.encode("utf-8")))
 basic_authorization_bad = b"Basic bad basic_authorization"
 
 

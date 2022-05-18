@@ -35,12 +35,6 @@ logger = getLogger(__name__)
     default=(None, None),
     help="Administrator username/password. [default: username password]",
 )
-# @click.option(
-#     "--anonymous",
-#     is_flag=True,
-#     default=False,
-#     help="anonymous support",
-# )
 @click.option(
     "-r",
     "--root-path",
@@ -68,7 +62,7 @@ logger = getLogger(__name__)
 def cli(**cli_kwargs):
     kwargs = cli_kwargs_parser(**cli_kwargs)
 
-    logger.debug("uvicorn's kwargs:{}".format(kwargs))
+    logger.debug(f"uvicorn's kwargs:{kwargs}")
     return uvicorn.run(**kwargs)
 
 
@@ -106,13 +100,12 @@ def cli_kwargs_parser(
 
     # development
     if dev:
-        kwargs.update(
-            {
-                "app": "asgi_webdav.dev:app",
-                "reload": True,
-                "reload_dirs": [pathlib.Path(__file__).parent.as_posix()],
-            }
-        )
+        kwargs |= {
+            "app": "asgi_webdav.dev:app",
+            "reload": True,
+            "reload_dirs": [pathlib.Path(__file__).parent.as_posix()],
+        }
+
 
         return kwargs
 
@@ -120,12 +113,11 @@ def cli_kwargs_parser(
     if in_docker_container:
         config = "/data/webdav.json"
 
-    kwargs.update(
-        {
-            "app": get_app(app_args=app_args, config_file=config),
-            "forwarded_allow_ips": "*",
-        }
-    )
+    kwargs |= {
+        "app": get_app(app_args=app_args, config_file=config),
+        "forwarded_allow_ips": "*",
+    }
+
     return kwargs
 
 
