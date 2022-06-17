@@ -2,7 +2,7 @@ from asyncio import Lock
 from collections.abc import AsyncGenerator
 from copy import deepcopy
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Optional, Tuple, List, Dict
 
 from asgi_webdav.constants import DAVDepth, DAVPath, DAVPropertyIdentity, DAVTime
 from asgi_webdav.helpers import get_data_generator_from_content
@@ -17,17 +17,17 @@ class FileSystemMember:
     is_file: bool  # True => file, False => path
 
     property_basic_data: DAVPropertyBasicData
-    property_extra_data: dict[DAVPropertyIdentity, str]
+    property_extra_data: Dict[DAVPropertyIdentity, str]
 
-    content: bytes | None = None
-    children: dict[str, "FileSystemMember"] = field(default_factory=dict)
+    content: Optional[bytes] = None
+    children: Dict[str, "FileSystemMember"] = field(default_factory=dict)
 
     @property
     def is_path(self):
         return not self.is_file
 
     def _new_child(
-        self, name: str, content: bytes | None = None
+        self, name: str, content: Optional[bytes] = None
     ) -> Optional["FileSystemMember"]:
         if name in self.children:
             return None
@@ -117,7 +117,7 @@ class FileSystemMember:
 
         return fs_member
 
-    def get_all_child_member_path(self, depth: DAVDepth) -> list[DAVPath]:
+    def get_all_child_member_path(self, depth: DAVDepth) -> List[DAVPath]:
         """depth == DAVDepth.d1 or DAVDepth.infinity"""
         # TODO DAVDepth.infinity
         paths = list()
@@ -257,7 +257,7 @@ class MemoryProvider(DAVProvider):
 
         return dav_property
 
-    async def _do_propfind(self, request: DAVRequest) -> dict[DAVPath, DAVProperty]:
+    async def _do_propfind(self, request: DAVRequest) -> Dict[DAVPath, DAVProperty]:
         dav_properties = dict()
 
         async with self.fs_lock:
@@ -297,7 +297,7 @@ class MemoryProvider(DAVProvider):
 
     async def _do_get(
         self, request: DAVRequest
-    ) -> tuple[int, DAVPropertyBasicData | None, AsyncGenerator | None]:
+    ) -> Tuple[int, Optional[DAVPropertyBasicData], Optional[AsyncGenerator]]:
         async with self.fs_lock:
             member = self.fs_root.get_member(request.dist_src_path)
             if member is None:
@@ -326,7 +326,7 @@ class MemoryProvider(DAVProvider):
 
     async def _do_head(
         self, request: DAVRequest
-    ) -> tuple[int, DAVPropertyBasicData | None]:
+    ) -> Tuple[int, Optional[DAVPropertyBasicData]]:
         async with self.fs_lock:
             member = self.fs_root.get_member(request.dist_src_path)
             if member is None:

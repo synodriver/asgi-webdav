@@ -5,7 +5,7 @@ import re
 from base64 import b64decode
 from enum import IntEnum
 from logging import getLogger
-from typing import Optional
+from typing import Optional, List, Dict
 from uuid import uuid4
 
 import bonsai
@@ -66,10 +66,10 @@ class DAVPassword:
     password: str
 
     type: DAVPasswordType
-    data: Optional[list[str]] = None
+    data: Optional[List[str]] = None
     message: Optional[str] = None
 
-    def _parser_password_string(self) -> (DAVPasswordType, list[str]):
+    def _parser_password_string(self) -> (DAVPasswordType, List[str]):
         m = re.match(r"^<(?P<sign>\w+)>(?P<split_char>[:#$&|])", self.password)
         if m is None:
             self.type = DAVPasswordType.RAW
@@ -174,7 +174,7 @@ class HTTPAuthAbc:
 
 
 class HTTPBasicAuth(HTTPAuthAbc):
-    _cache: dict[bytes, DAVUser]  # basic string: DAVUser
+    _cache: Dict[bytes, DAVUser]  # basic string: DAVUser
     _cache_lock: asyncio.Lock
 
     def __init__(self, realm: str):
@@ -325,7 +325,7 @@ class HTTPDigestAuth(HTTPAuthAbc):
         self,
         request: DAVRequest,
         user: DAVUser,
-        digest_auth_data: dict[str, str],
+        digest_auth_data: Dict[str, str],
     ) -> bytes:
         ha1 = self.build_ha1_digest(user)
         ha2 = self.build_ha2_digest(
@@ -377,11 +377,11 @@ class HTTPDigestAuth(HTTPAuthAbc):
         return data
 
     @staticmethod
-    def authorization_string_build_from_data(data: dict[str, str]) -> str:
+    def authorization_string_build_from_data(data: Dict[str, str]) -> str:
         return ", ".join(['%s="%s"' % (k, v) for (k, v) in data.items()])
 
     @staticmethod
-    def build_md5_digest(data: list[str]) -> str:
+    def build_md5_digest(data: List[str]) -> str:
         return _md5(":".join(data))
 
     def build_ha1_digest(self, user: DAVUser) -> str:
@@ -409,7 +409,7 @@ class HTTPDigestAuth(HTTPAuthAbc):
         self,
         request: DAVRequest,
         user: DAVUser,
-        digest_auth_data: dict[str, str],
+        digest_auth_data: Dict[str, str],
     ) -> str:
         ha1 = self.build_ha1_digest(user)
         ha2 = self.build_ha2_digest(
@@ -453,7 +453,7 @@ MESSAGE_401_TEMPLATE = """<!DOCTYPE html>
 
 class DAVAuth:
     realm = "ASGI-WebDAV"
-    user_mapping: dict[str, DAVUser] = dict()
+    user_mapping: Dict[str, DAVUser] = dict()
 
     def __init__(self, config: Config):
         self.config = config

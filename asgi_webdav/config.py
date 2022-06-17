@@ -2,7 +2,7 @@ import json
 from enum import Enum
 from logging import getLogger
 from os import getenv
-from typing import Optional
+from typing import Optional, List, Dict
 
 from pydantic import BaseModel
 
@@ -20,7 +20,7 @@ logger = getLogger(__name__)
 class User(BaseModel):
     username: str
     password: str
-    permissions: list[str]
+    permissions: List[str]
     admin: bool = False
 
 
@@ -74,19 +74,19 @@ class Compression(BaseModel):
 class CORS(BaseModel):
     enable: bool = False
     allow_url_regex: Optional[str] = None
-    allow_origins: list[str] = ()
+    allow_origins: List[str] = ()
     allow_origin_regex: Optional[str] = None
-    allow_methods: list[str] = ("GET",)
-    allow_headers: list[str] = ()
+    allow_methods: List[str] = ("GET",)
+    allow_headers: List[str] = ()
     allow_credentials: bool = False
-    expose_headers: list[str] = ()
+    expose_headers: List[str] = ()
     preflight_max_age: int = 600
 
 
 class HideFileInDir(BaseModel):
     enable: bool = True
     enable_default_rules: bool = True
-    user_rules: dict[str, str] = dict()
+    user_rules: Dict[str, str] = dict()
 
 
 class LoggingLevel(Enum):
@@ -99,11 +99,11 @@ class LoggingLevel(Enum):
 
 class Config(BaseModel):
     # auth
-    account_mapping: list[User] = list()  # TODO => user_mapping ?
+    account_mapping: List[User] = list()  # TODO => user_mapping ?
     http_digest_auth: HTTPDigestAuth = HTTPDigestAuth()
 
     # provider
-    provider_mapping: list[Provider] = list()  # TODO => prefix_mapping ?
+    provider_mapping: List[Provider] = list()  # TODO => prefix_mapping ?
 
     # rules process
     hide_file_in_dir: HideFileInDir = HideFileInDir()
@@ -114,7 +114,7 @@ class Config(BaseModel):
     compression: Compression = Compression()
     cors: CORS = CORS()
     enable_dir_browser: bool = True
-
+    enable_asgi_zero_copy: bool = True
     # other
     logging_level: LoggingLevel = LoggingLevel.INFO
     sentry_dsn: Optional[str] = None

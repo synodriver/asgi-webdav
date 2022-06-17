@@ -1,7 +1,7 @@
 from copy import copy
 from dataclasses import dataclass
 from logging import getLogger
-from typing import Optional
+from typing import Optional, List, Dict
 
 from asgi_webdav import __version__
 from asgi_webdav.config import Config
@@ -204,7 +204,7 @@ class WebDAV:
 
         return response
 
-    def get_depth_1_child_provider(self, prefix: DAVPath) -> list[DAVProvider]:
+    def get_depth_1_child_provider(self, prefix: DAVPath) -> List[DAVProvider]:
         providers = list()
         for ppm in self.prefix_provider_mapping:
             if ppm.prefix.startswith(prefix):
@@ -231,8 +231,8 @@ class WebDAV:
         return response
 
     async def _do_propfind_hide_file_in_dir(
-        self, request: DAVRequest, data: dict[DAVPath, DAVProperty]
-    ) -> dict[DAVPath, DAVProperty]:
+        self, request: DAVRequest, data: Dict[DAVPath, DAVProperty]
+    ) -> Dict[DAVPath, DAVProperty]:
         for k in list(data.keys()):
             if await self._hide_file_in_dir.is_match_hide_file_in_dir(
                 request.client_user_agent, k.name
@@ -243,7 +243,7 @@ class WebDAV:
 
     async def _do_propfind(
         self, request: DAVRequest, provider: DAVProvider
-    ) -> dict[DAVPath, DAVProperty]:
+    ) -> Dict[DAVPath, DAVProperty]:
         dav_properties = await provider.do_propfind(request)
         if provider.home_dir:
             return await self._do_propfind_hide_file_in_dir(request, dav_properties)
@@ -336,7 +336,7 @@ class WebDAV:
         self,
         client_user_agent: str,
         root_path: DAVPath,
-        dav_properties: dict[DAVPath, DAVProperty],
+        dav_properties: Dict[DAVPath, DAVProperty],
     ) -> bytes:
         if root_path.count == 0:
             tbody_parent = str()

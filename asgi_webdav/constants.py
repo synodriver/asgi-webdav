@@ -3,18 +3,18 @@ from collections import namedtuple
 from dataclasses import dataclass, field
 from enum import Enum, IntEnum
 from time import time
-from typing import NewType, Union, Optional
+from typing import NewType, Union, Optional, List, Tuple, Dict
 from uuid import UUID
 
 import arrow
 
-ASGIScope = NewType("ASGIScope", dict[str, any])
+ASGIScope = NewType("ASGIScope", Dict)
 
 
 class ASGIHeaders:
-    data: dict[bytes, bytes]
+    data: Dict
 
-    def __init__(self, data: list[tuple[bytes, bytes]] = None):
+    def __init__(self, data: List[Tuple[bytes, bytes]] = None):
         if data is None:
             self.data = dict()
 
@@ -33,7 +33,7 @@ class ASGIHeaders:
     def __contains__(self, item) -> bool:
         return item in self.data
 
-    def update(self, new_data: dict[bytes, bytes]) -> None:
+    def update(self, new_data: Dict[bytes, bytes]) -> None:
         self.data.update(new_data)
 
     def list(self):
@@ -73,10 +73,10 @@ DAVMethod = namedtuple("DAVMethodClass", DAV_METHODS)(*DAV_METHODS)
 class DAVPath:
     raw: str  # must start with '/' or empty, and not end with '/'
 
-    parts: list[str]
+    parts: List[str]
     count: int  # len(parts)
 
-    def _update_value(self, parts: list[str], count: int):
+    def _update_value(self, parts: List[str], count: int):
         self.raw = "/" + "/".join(parts)
         self.parts = parts
         self.count = count
@@ -84,7 +84,7 @@ class DAVPath:
     def __init__(
         self,
         path: Union[str, bytes, None] = None,
-        parts: list[str] = None,
+        parts: List[str] = None,
         count: int = None,
     ):
         if path is None and parts is not None and count is not None:
@@ -265,11 +265,11 @@ class DAVLockInfo:
 class DAVUser:
     username: str
     password: str
-    permissions: list[str]
+    permissions: List[str]
     admin: bool
 
-    permissions_allow: list[str] = field(default_factory=list)
-    permissions_deny: list[str] = field(default_factory=list)
+    permissions_allow: List[str] = field(default_factory=list)
+    permissions_deny: List[str] = field(default_factory=list)
 
     def __post_init__(self):
         for permission in self.permissions:
@@ -280,7 +280,7 @@ class DAVUser:
             else:
                 raise
 
-    def check_paths_permission(self, paths: list[DAVPath]) -> bool:
+    def check_paths_permission(self, paths: List[DAVPath]) -> bool:
         for path in paths:
             allow = False
             for permission in self.permissions_allow:  # allow: or
@@ -332,13 +332,13 @@ DAV_PROPERTY_BASIC_KEYS = {
 DAVPropertyIdentity = NewType(
     # (namespace, key)
     "DAVPropertyIdentity",
-    tuple[str, str],
+    Tuple[str, str],
 )
 DAVPropertyPatches = NewType(
     "DAVPropertyPatches",
-    list[
+    List[
         # (DAVPropertyIdentity(sn_key), value, set<True>/remove<False>)
-        tuple[DAVPropertyIdentity, str, bool]
+        Tuple[DAVPropertyIdentity, str, bool]
     ],
 )
 
@@ -413,7 +413,7 @@ class AppEntryParameters:
     bind_port: Optional[int] = None
 
     config_file: Optional[str] = None
-    admin_user: Optional[tuple[str, str]] = None
+    admin_user: Optional[Tuple[str, str]] = None
     root_path: Optional[str] = None
 
     dev_mode: Optional[DevMode] = None

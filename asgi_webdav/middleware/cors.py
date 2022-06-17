@@ -1,6 +1,7 @@
 import functools
 import re
 import urllib.parse
+from typing import Optional, List
 
 from asgi_webdav.constants import ASGIHeaders, ASGIScope
 
@@ -23,7 +24,7 @@ class ResponseTextMessage:
     message: str
 
     def __init__(
-        self, message: str, status: int = 200, headers: ASGIHeaders | None = None
+        self, message: str, status: int = 200, headers: Optional[ASGIHeaders] = None
     ):
         self.status = status
         self.headers = headers
@@ -50,13 +51,13 @@ class ASGIMiddlewareCORS:
     def __init__(
         self,
         app,
-        allow_url_regex: str | None = None,
-        allow_origins: list[str] = (),
-        allow_origin_regex: str | None = None,
-        allow_methods: list[str] = ("GET",),
-        allow_headers: list[str] = (),
+        allow_url_regex: Optional[str] = None,
+        allow_origins: List[str] = (),
+        allow_origin_regex: Optional[str] = None,
+        allow_methods: List[str] = ("GET",),
+        allow_headers: List[str] = (),
         allow_credentials: bool = False,
-        expose_headers: list[str] = (),
+        expose_headers: List[str] = (),
         preflight_max_age: int = 600,
     ) -> None:
         if "*" in allow_methods:

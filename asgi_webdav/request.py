@@ -3,7 +3,7 @@ import urllib.parse
 from collections import OrderedDict
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Optional, List, Tuple, Set
 from uuid import UUID
 
 from pyexpat import ExpatError
@@ -69,11 +69,11 @@ class DAVRequest:
 
     propfind_fetch_all_property: bool = True
     propfind_only_fetch_basic: bool = False
-    propfind_basic_keys: set[str] = field(default_factory=set)
-    propfind_extra_keys: list[DAVPropertyIdentity] = field(default_factory=list)
+    propfind_basic_keys: Set[str] = field(default_factory=set)
+    propfind_extra_keys: List[DAVPropertyIdentity] = field(default_factory=list)
 
     # proppatch info ---
-    proppatch_entries: list[DAVPropertyPatches] = field(default_factory=list)
+    proppatch_entries: List[DAVPropertyPatches] = field(default_factory=list)
 
     # lock info --- (in both header and body)
     lock_scope: Optional[DAVLockScope] = None
@@ -263,7 +263,7 @@ class DAVRequest:
 
         return token
 
-    def _parser_header_if(self, data: str) -> list[tuple[UUID, Optional[str]]]:
+    def _parser_header_if(self, data: str) -> List[Tuple[UUID, Optional[str]]]:
         """
         b'if',
         b'<http://192.168.200.198:8000/litmus/lockcoll/> '
@@ -312,7 +312,7 @@ class DAVRequest:
             self.dist_dst_path = self.dst_path.get_child(dist_prefix)
 
     @staticmethod
-    def _cut_ns_key(ns_key: str) -> tuple[str, str]:
+    def _cut_ns_key(ns_key: str) -> Tuple[str, str]:
         index = ns_key.rfind(":")
         if index == -1:
             return "", ns_key
