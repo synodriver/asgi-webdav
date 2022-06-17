@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+    <url>
+         <loc>changelog/</loc>
+         <lastmod>2022-06-17</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="en/changelog/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="ru/changelog/"/>
+         <xhtml:link rel="alternate" hreflang="zh" href="zh/changelog/"/>
+         
+    </url>
+    <url>
+         <loc>compatibility/</loc>
+         <lastmod>2022-06-17</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="en/compatibility/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="ru/compatibility/"/>
+         <xhtml:link rel="alternate" hreflang="zh" href="zh/compatibility/"/>
+         
+    </url>
+    <url>
+         <loc>contributing/</loc>
+         <lastmod>2022-06-17</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="en/contributing/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="ru/contributing/"/>
+         <xhtml:link rel="alternate" hreflang="zh" href="zh/contributing/"/>
+         
+    </url>
+    <url>
+         <loc>.</loc>
+         <lastmod>2022-06-17</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="en/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="ru/"/>
+         <xhtml:link rel="alternate" hreflang="zh" href="zh/"/>
+         
+    </url>
+    <url>
+         <loc>install/</loc>
+         <lastmod>2022-06-17</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="en/install/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="ru/install/"/>
+         <xhtml:link rel="alternate" hreflang="zh" href="zh/install/"/>
+         
+    </url>
+    <url>
+         <loc>known-issues/</loc>
+         <lastmod>2022-06-17</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="en/known-issues/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="ru/known-issues/"/>
+         <xhtml:link rel="alternate" hreflang="zh" href="zh/known-issues/"/>
+         
+    </url>
+    <url>
+         <loc>quick-start-in-docker/</loc>
+         <lastmod>2022-06-17</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="en/quick-start-in-docker/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="ru/quick-start-in-docker/"/>
+         <xhtml:link rel="alternate" hreflang="zh" href="zh/quick-start-in-docker/"/>
+         
+    </url>
+    <url>
+         <loc>trouble-shooting/</loc>
+         <lastmod>2022-06-17</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="en/trouble-shooting/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="ru/trouble-shooting/"/>
+         <xhtml:link rel="alternate" hreflang="zh" href="zh/trouble-shooting/"/>
+         
+    </url>
+    <url>
+         <loc>guide/cors/</loc>
+         <lastmod>2022-06-17</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="en/guide/cors/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="ru/guide/cors/"/>
+         <xhtml:link rel="alternate" hreflang="zh" href="zh/guide/cors/"/>
+         
+    </url>
+    <url>
+         <loc>guide/multi-account/</loc>
+         <lastmod>2022-06-17</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="en/guide/multi-account/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="ru/guide/multi-account/"/>
+         <xhtml:link rel="alternate" hreflang="zh" href="zh/guide/multi-account/"/>
+         
+    </url>
+    <url>
+         <loc>guide/protect-your-password-in-the-config/</loc>
+         <lastmod>2022-06-17</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="en/guide/protect-your-password-in-the-config/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="ru/guide/protect-your-password-in-the-config/"/>
+         <xhtml:link rel="alternate" hreflang="zh" href="zh/guide/protect-your-password-in-the-config/"/>
+         
+    </url>
+    <url>
+         <loc>howto/howto-hide-files-in-dir-with-the-specified-client/</loc>
+         <lastmod>2022-06-17</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="en/howto/howto-hide-files-in-dir-with-the-specified-client/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="ru/howto/howto-hide-files-in-dir-with-the-specified-client/"/>
+         <xhtml:link rel="alternate" hreflang="zh" href="zh/howto/howto-hide-files-in-dir-with-the-specified-client/"/>
+         
+    </url>
+    <url>
+         <loc>howto/howto-specify-type-for-specific-file-extentions/</loc>
+         <lastmod>2022-06-17</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="en/howto/howto-specify-type-for-specific-file-extentions/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="ru/howto/howto-specify-type-for-specific-file-extentions/"/>
+         <xhtml:link rel="alternate" hreflang="zh" href="zh/howto/howto-specify-type-for-specific-file-extentions/"/>
+         
+    </url>
+    <url>
+         <loc>reference/cli/</loc>
+         <lastmod>2022-06-17</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="en/reference/cli/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="ru/reference/cli/"/>
+         <xhtml:link rel="alternate" hreflang="zh" href="zh/reference/cli/"/>
+         
+    </url>
+    <url>
+         <loc>reference/config-file/</loc>
+         <lastmod>2022-06-17</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="en/reference/config-file/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="ru/reference/config-file/"/>
+         <xhtml:link rel="alternate" hreflang="zh" href="zh/reference/config-file/"/>
+         
+    </url>
+    <url>
+         <loc>reference/config/</loc>
+         <lastmod>2022-06-17</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="en/reference/config/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="ru/reference/config/"/>
+         <xhtml:link rel="alternate" hreflang="zh" href="zh/reference/config/"/>
+         
+    </url>
+    <url>
+         <loc>reference/env-value/</loc>
+         <lastmod>2022-06-17</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="en/reference/env-value/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="ru/reference/env-value/"/>
+         <xhtml:link rel="alternate" hreflang="zh" href="zh/reference/env-value/"/>
+         
+    </url>
+    <url>
+         <loc>reference/misc/</loc>
+         <lastmod>2022-06-17</lastmod>
+         <changefreq>daily</changefreq>
+         <xhtml:link rel="alternate" hreflang="en" href="en/reference/misc/"/>
+         <xhtml:link rel="alternate" hreflang="ru" href="ru/reference/misc/"/>
+         <xhtml:link rel="alternate" hreflang="zh" href="zh/reference/misc/"/>
+         
+    </url>
+</urlset>
