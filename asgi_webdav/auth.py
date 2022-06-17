@@ -5,6 +5,7 @@ import re
 from base64 import b64decode
 from enum import IntEnum
 from logging import getLogger
+from typing import Optional
 from uuid import uuid4
 
 import bonsai
@@ -65,8 +66,8 @@ class DAVPassword:
     password: str
 
     type: DAVPasswordType
-    data: list[str] | None = None
-    message: str | None = None
+    data: Optional[list[str]] = None
+    message: Optional[str] = None
 
     def _parser_password_string(self) -> (DAVPasswordType, list[str]):
         m = re.match(r"^<(?P<sign>\w+)>(?P<split_char>[:#$&|])", self.password)
@@ -98,7 +99,7 @@ class DAVPassword:
 
         self._parser_password_string()
 
-    def check_hashlib_password(self, password: str) -> (bool, str | None):
+    def check_hashlib_password(self, password: str) -> (bool, Optional[str]):
         """
         password string format: "<hashlib>:algorithm:salt:hex-digest-string"
         hex-digest-string: hashlib.new(algorithm, b"{salt}:{password}").hexdigest()
@@ -116,7 +117,7 @@ class DAVPassword:
 
         return False, None
 
-    async def check_ldap_password(self, password: str) -> (bool, str | None):
+    async def check_ldap_password(self, password: str) -> (bool, Optional[str]):
         """ "
         "<ldap>#1#ldaps:/your.domain.com#SIMPLE#uid=user-ldap,cn=users,dc=rexzhang,dc=myds,dc=me"
         """
@@ -144,7 +145,7 @@ class DAVPassword:
 
         return True, None
 
-    def check_digest_password(self, username: str, password: str) -> (bool, str | None):
+    def check_digest_password(self, username: str, password: str) -> (bool, Optional[str]):
         """
         password string format: "<digest>:{realm}:{HA1}"
         HA1: hashlib.new("md5", b"{username}:{realm}:{password}").hexdigest()
@@ -189,7 +190,7 @@ class HTTPBasicAuth(HTTPAuthAbc):
     def make_auth_challenge_string(self) -> bytes:
         return 'Basic realm="{}"'.format(self.realm).encode("utf-8")
 
-    async def get_user_from_cache(self, auth_header_data: bytes) -> DAVUser | None:
+    async def get_user_from_cache(self, auth_header_data: bytes) -> Optional[DAVUser]:
         async with self._cache_lock:
             return self._cache.get(auth_header_data)
 
@@ -217,24 +218,23 @@ class HTTPBasicAuth(HTTPAuthAbc):
     async def check_password(user: DAVUser, password: str) -> bool:
         pw_obj = DAVPassword(user.password)
 
-        match pw_obj.type:
-            case DAVPasswordType.RAW:
-                if password == user.password:
-                    return True
+        if pw_obj.type == DAVPasswordType.RAW:
+            if password == user.password:
+                return True
 
-                valid, message = False, None
+            valid, message = False, None
 
-            case DAVPasswordType.HASHLIB:
-                valid, message = pw_obj.check_hashlib_password(password)
+        elif pw_obj.type == DAVPasswordType.HASHLIB:
+            valid, message = pw_obj.check_hashlib_password(password)
 
-            case DAVPasswordType.DIGEST:
-                valid, message = pw_obj.check_digest_password(user.username, password)
+        elif pw_obj.type == DAVPasswordType.DIGEST:
+            valid, message = pw_obj.check_digest_password(user.username, password)
 
-            case DAVPasswordType.LDAP:
-                valid, message = await pw_obj.check_ldap_password(password)
+        elif pw_obj.type == DAVPasswordType.LDAP:
+            valid, message = await pw_obj.check_ldap_password(password)
 
-            case _:
-                valid, message = False, pw_obj.message
+        else:
+            valid, message = False, pw_obj.message
 
         if valid:
             return True
@@ -285,7 +285,7 @@ class HTTPDigestAuth(HTTPAuthAbc):
     # sends these parameters with quotes—this is not known to cause any problems with
     # other server implementations.
 
-    def __init__(self, realm: str, secret: str | None = None):
+    def __init__(self, realm: str, secret: Optional[str] = None):
         super().__init__(realm=realm)
 
         if secret is None:
@@ -389,15 +389,12 @@ class HTTPDigestAuth(HTTPAuthAbc):
         HA1 = MD5(username:realm:password)
         """
         pw_obj = DAVPassword(user.password)
-        match pw_obj.type:
-            case DAVPasswordType.RAW:
-                return self.build_md5_digest([user.username, self.realm, user.password])
-
-            case DAVPasswordType.DIGEST:
-                return pw_obj.data[2]
-
-            case _:
-                pass
+        if pw_obj.type== DAVPasswordType.RAW:
+            return self.build_md5_digest([user.username, self.realm, user.password])
+        elif pw_obj.type== DAVPasswordType.DIGEST:
+            return pw_obj.data[2]
+        else:
+            pass
 
         logger.error("{}, , username:{}".format(pw_obj.message, user.username))
         return ""
@@ -475,7 +472,7 @@ class DAVAuth:
         self.http_basic_auth = HTTPBasicAuth(realm=self.realm)
         self.http_digest_auth = HTTPDigestAuth(realm=self.realm, secret=uuid4().hex)
 
-    async def pick_out_user(self, request: DAVRequest) -> (DAVUser | None, str):
+    async def pick_out_user(self, request: DAVRequest) -> (Optional[DAVUser], str):
         authorization_header = request.headers.get(b"authorization")
         if authorization_header is None:
             return None, "miss header: authorization"

@@ -5,7 +5,7 @@ from collections.abc import AsyncGenerator
 from logging import getLogger
 from pathlib import Path
 from stat import S_ISDIR
-from typing import Union
+from typing import Union, Optional
 from dataclasses import dataclass
 
 import aiofiles
@@ -107,8 +107,8 @@ async def _update_extra_property(
 
 async def _dav_response_data_generator(
         resource_abs_path: Path,
-        content_range_start: int | None = None,
-        content_range_end: int | None = None,
+        content_range_start: Optional[int] = None,
+        content_range_end: Optional[int] = None,
         block_size: int = RESPONSE_DATA_BLOCK_SIZE,
 ) -> AsyncGenerator[bytes, bool]:
     async with aiofiles.open(resource_abs_path, mode="rb") as f:
@@ -145,8 +145,8 @@ async def _dav_response_data_generator(
 @dataclass
 class DAVZeroCopySendData:
     file: int
-    offset: int | None
-    count: int | None
+    offset: Optional[int]
+    count: Optional[int]
 
 
 if os.name == "nt":  # pragma: py-no-win32
@@ -182,7 +182,7 @@ class FileSystemProvider(DAVProvider):
         else:
             return "file://{}".format(self.root_path)
 
-    def _get_fs_path(self, path: DAVPath, username: str | None) -> Path:
+    def _get_fs_path(self, path: DAVPath, username: Optional[str]) -> Path:
         if self.home_dir and username:
             return self.root_path.joinpath(username, *path.parts)
 
@@ -311,7 +311,7 @@ class FileSystemProvider(DAVProvider):
 
     async def _do_get(
             self, request: DAVRequest
-    ) -> tuple[int, DAVPropertyBasicData | None, DAVZeroCopySendData | None]:
+    ) -> tuple[int, Optional[DAVPropertyBasicData], Optional[DAVZeroCopySendData]]:
         fs_path = self._get_fs_path(request.dist_src_path, request.user.username)
         if not fs_path.exists():
             return 404, None, None
@@ -342,7 +342,7 @@ class FileSystemProvider(DAVProvider):
 
     async def _do_head(
             self, request: DAVRequest
-    ) -> tuple[int, DAVPropertyBasicData | None]:
+    ) -> tuple[int, Optional[DAVPropertyBasicData]]:
         fs_path = self._get_fs_path(request.dist_src_path, request.user.username)
         if not fs_path.exists():  # TODO macOS 不区分大小写
             return 404, None
@@ -350,7 +350,7 @@ class FileSystemProvider(DAVProvider):
         dav_property = await self._get_dav_property(request, request.src_path, fs_path)
         return 200, dav_property.basic_data
 
-    def _fs_delete(self, path: DAVPath, username: str | None) -> int:
+    def _fs_delete(self, path: DAVPath, username: Optional[str]) -> int:
         fs_path = self._get_fs_path(path, username)
         properties_path = self._get_fs_properties_path(fs_path)
         if not fs_path.exists():

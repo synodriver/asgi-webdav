@@ -7,7 +7,7 @@ from collections.abc import AsyncGenerator
 from enum import Enum
 from io import BytesIO
 from logging import getLogger
-from typing import Optional, Callable
+from typing import Optional, Callable, Union
 
 from asgi_webdav.config import Config, get_config
 from asgi_webdav.constants import (
@@ -51,7 +51,7 @@ class DAVResponse:
     def get_content(self):
         return self._content
 
-    def set_content(self, value: DAVZeroCopySendData | bytes | AsyncGenerator):
+    def set_content(self, value: Union[DAVZeroCopySendData, bytes, AsyncGenerator]):
         if isinstance(value, bytes):
             self._content = get_data_generator_from_content(value)
             self.content_length = len(value)
@@ -64,19 +64,19 @@ class DAVResponse:
             raise
 
     content = property(fget=get_content, fset=set_content)
-    _content: AsyncGenerator | DAVZeroCopySendData
-    content_length: int | None
+    _content: Union[AsyncGenerator, DAVZeroCopySendData]
+    content_length: Optional[int]
     content_range: bool = False
-    content_range_start: int | None = None
+    content_range_start: Optional[int] = None
 
     def __init__(
             self,
             status: int,
-            headers: dict[bytes, bytes] | None = None,  # extend headers
+            headers: Optional[dict[bytes, bytes]] = None,  # extend headers
             response_type: DAVResponseType = DAVResponseType.HTML,
-            content: bytes | AsyncGenerator | DAVZeroCopySendData = b"",
-            content_length: int | None = None,  # don't assignment when data is bytes
-            content_range_start: int | None = None,
+            content: Union[bytes, AsyncGenerator, DAVZeroCopySendData] = b"",
+            content_length: Optional[int] = None,  # don't assignment when data is bytes
+            content_range_start: Optional[int] = None,
     ):
         self.status = status
 
@@ -434,7 +434,7 @@ class BrotliSender(CompressionSenderAbc):
 
 class DAVHideFileInDir:
     _data_rules: dict[str, str]
-    _data_rules_default: str | None
+    _data_rules_default: Optional[str]
 
     def __init__(self, config: Config):
         self.enable = config.hide_file_in_dir.enable
@@ -461,13 +461,13 @@ class DAVHideFileInDir:
             self._data_rules_default = self._data_rules.pop("")
 
     @staticmethod
-    def _merge_rules(rules_a: str | None, rules_b: str) -> str:
+    def _merge_rules(rules_a: Optional[str], rules_b: str) -> str:
         if rules_a is None:
             return rules_b
 
         return "{}|{}".format(rules_a, rules_b)
 
-    def get_rule_by_client_user_agent(self, ua: str) -> str | None:
+    def get_rule_by_client_user_agent(self, ua: str) -> Optional[str]:
         ua_matched = False
         result = None
 

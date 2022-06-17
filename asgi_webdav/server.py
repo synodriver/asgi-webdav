@@ -2,6 +2,7 @@ import logging.config
 import pathlib
 import sys
 from logging import getLogger
+from typing import Optional
 
 from asgi_middleware_static_file import ASGIMiddlewareStaticFile
 
@@ -92,7 +93,7 @@ class Server:
         return request, response
 
 
-def get_asgi_app(aep: AppEntryParameters, config_obj: dict | None = None):
+def get_asgi_app(aep: AppEntryParameters, config_obj: Optional[dict] = None):
     """create ASGI app"""
     logging.config.dictConfig(get_dav_logging_config())
 
@@ -175,27 +176,25 @@ def convert_aep_to_uvicorn_kwargs(aep: AppEntryParameters) -> dict:
     }
 
     # development
-    match aep.dev_mode:
-        case DevMode.DEV:
-            kwargs.update(
-                {
-                    "app": "asgi_webdav.dev.dev:app",
-                    "reload": True,
-                    "reload_dirs": [pathlib.Path(__file__).parent.as_posix()],
-                }
-            )
-            return kwargs
-
-        case DevMode.LIMTUS:
-            kwargs.update(
-                {
-                    "app": "asgi_webdav.dev.litmus:app",
-                    "host": "0.0.0.0",
-                    "reload": True,
-                    "reload_dirs": [pathlib.Path(__file__).parent.as_posix()],
-                }
-            )
-            return kwargs
+    if aep.dev_mode == DevMode.DEV:
+        kwargs.update(
+            {
+                "app": "asgi_webdav.dev.dev:app",
+                "reload": True,
+                "reload_dirs": [pathlib.Path(__file__).parent.as_posix()],
+            }
+        )
+        return kwargs
+    elif aep.dev_mode == DevMode.LIMTUS:
+        kwargs.update(
+            {
+                "app": "asgi_webdav.dev.litmus:app",
+                "host": "0.0.0.0",
+                "reload": True,
+                "reload_dirs": [pathlib.Path(__file__).parent.as_posix()],
+            }
+        )
+        return kwargs
 
     # production
     kwargs.update(

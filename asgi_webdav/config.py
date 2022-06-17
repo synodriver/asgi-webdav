@@ -3,6 +3,7 @@ import threading
 from enum import Enum
 from logging import getLogger
 from os import getenv
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -72,9 +73,9 @@ class Compression(BaseModel):
 
 class CORS(BaseModel):
     enable: bool = False
-    allow_url_regex: str | None = None
+    allow_url_regex: Optional[str] = None
     allow_origins: list[str] = ()
-    allow_origin_regex: str | None = None
+    allow_origin_regex: Optional[str] = None
     allow_methods: list[str] = ("GET",)
     allow_headers: list[str] = ()
     allow_credentials: bool = False
@@ -116,7 +117,7 @@ class Config(BaseModel):
 
     # other
     logging_level: LoggingLevel = LoggingLevel.INFO
-    sentry_dsn: str | None = None
+    sentry_dsn: Optional[str] = None
 
     def update_from_app_args_and_env_and_default_value(self, aep: AppEntryParameters):
         """
@@ -199,7 +200,7 @@ class Config(BaseModel):
             self.sentry_dsn = sentry_dsn
 
 
-_config: Config | None = None
+_config: Optional[Config] = None
 _config_lock = threading.Lock()
 
 

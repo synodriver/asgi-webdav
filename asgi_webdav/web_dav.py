@@ -1,6 +1,7 @@
 from copy import copy
 from dataclasses import dataclass
 from logging import getLogger
+from typing import Optional
 
 from asgi_webdav import __version__
 from asgi_webdav.config import Config
@@ -112,7 +113,7 @@ class WebDAV:
         # init hide file in dir
         self._hide_file_in_dir = DAVHideFileInDir(config)
 
-    def match_provider(self, request: DAVRequest) -> DAVProvider | None:
+    def match_provider(self, request: DAVRequest) -> Optional[DAVProvider]:
         weight = None
         provider = None
 

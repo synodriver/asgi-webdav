@@ -1,7 +1,7 @@
 import hashlib
 import functools
 import os
-from typing import Any, TypeVar
+from typing import Any, TypeVar, Optional, Union
 import re
 import xml.parsers.expat
 from collections.abc import AsyncGenerator, Callable
@@ -38,8 +38,8 @@ async def empty_data_generator() -> AsyncGenerator[bytes, bool]:
 
 async def get_data_generator_from_content(
         content: bytes,
-        content_range_start: int | None = None,
-        content_range_end: int | None = None,
+        content_range_start: Optional[int] = None,
+        content_range_end: Optional[int] = None,
         block_size: int = RESPONSE_DATA_BLOCK_SIZE,
 ) -> AsyncGenerator[bytes, bool]:
     """
@@ -77,7 +77,7 @@ def generate_etag(f_size: [float, int], f_modify_time: float) -> str:
     )
 
 
-def guess_type(config: Config, file: str | Path) -> (str | None, str | None):
+def guess_type(config: Config, file: Union[str, Path]) -> (Optional[str], Optional[str]):
     """
     https://tools.ietf.org/html/rfc6838
     https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Basics_of_HTTP/MIME_types
@@ -107,7 +107,7 @@ def guess_type(config: Config, file: str | Path) -> (str | None, str | None):
     return content_type, content_encoding
 
 
-async def detect_charset(file: str | Path, content_type: str | None) -> str | None:
+async def detect_charset(file: Union[str, Path], content_type: Optional[str]) -> Optional[str]:
     """
     https://docs.python.org/3/library/codecs.html
     """
@@ -133,7 +133,7 @@ async def detect_charset(file: str | Path, content_type: str | None) -> str | No
 USER_AGENT_PATTERN = r"firefox|chrome|safari"
 
 
-def is_browser_user_agent(user_agent: bytes | None) -> bool:
+def is_browser_user_agent(user_agent: Optional[bytes]) -> bool:
     if user_agent is None:
         return False
 
@@ -152,7 +152,7 @@ def dav_dict2xml(data: dict) -> bytes:
     )
 
 
-def dav_xml2dict(data: bytes) -> dict | None:
+def dav_xml2dict(data: bytes) -> Optional[dict]:
     try:
         data = xmltodict.parse(data, process_namespaces=True)
 

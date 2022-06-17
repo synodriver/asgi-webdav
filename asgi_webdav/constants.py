@@ -3,7 +3,7 @@ from collections import namedtuple
 from dataclasses import dataclass, field
 from enum import Enum, IntEnum
 from time import time
-from typing import NewType, Union
+from typing import NewType, Union, Optional
 from uuid import UUID
 
 import arrow
@@ -21,7 +21,7 @@ class ASGIHeaders:
         else:
             self.data = dict(data)
 
-    def get(self, key: bytes, default: bytes = None) -> bytes | None:
+    def get(self, key: bytes, default: bytes = None) -> Optional[bytes]:
         return self.data.get(key, default)
 
     def __getitem__(self, key: bytes) -> bytes:
@@ -83,7 +83,7 @@ class DAVPath:
 
     def __init__(
         self,
-        path: str | bytes | None = None,
+        path: Union[str, bytes, None] = None,
         parts: list[str] = None,
         count: int = None,
     ):
@@ -174,7 +174,7 @@ class DAVDepth(Enum):
 class DAVTime:
     timestamp: float
 
-    def __init__(self, timestamp: float | None = None):
+    def __init__(self, timestamp: Optional[float] = None):
         if timestamp is None:
             timestamp = time()
 
@@ -409,14 +409,14 @@ class DevMode(Enum):
 
 @dataclass
 class AppEntryParameters:
-    bind_host: str | None = None
-    bind_port: int | None = None
+    bind_host: Optional[str] = None
+    bind_port: Optional[int] = None
 
-    config_file: str | None = None
-    admin_user: tuple[str, str] | None = None
-    root_path: str | None = None
+    config_file: Optional[str] = None
+    admin_user: Optional[tuple[str, str]] = None
+    root_path: Optional[str] = None
 
-    dev_mode: DevMode | None = None
+    dev_mode: Optional[DevMode] = None
 
     logging_display_datetime: bool = True
     logging_use_colors: bool = True
