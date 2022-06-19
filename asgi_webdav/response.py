@@ -20,7 +20,6 @@ from asgi_webdav.constants import (
 )
 from asgi_webdav.helpers import (
     get_data_generator_from_content,
-    iter_fd,
     run_in_threadpool,
 )
 from asgi_webdav.request import DAVRequest
@@ -48,8 +47,8 @@ class DAVCompressionMethod(Enum):
 @dataclass
 class DAVZeroCopySendData:
     file: int
-    offset: Optional[int]
-    count: Optional[int]
+    offset: Optional[int] = None
+    count: Optional[int] = None
 
 
 class DAVResponse:
