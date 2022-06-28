@@ -2,15 +2,7 @@ name: pytest
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - '**.py'
 
-  pull_request:
-    branches:
-      - main
 
 jobs:
   build:
